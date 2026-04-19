@@ -1,0 +1,8 @@
+</> SCC
+
+body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    padding: 20px;
+}
