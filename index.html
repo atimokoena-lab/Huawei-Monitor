@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pro Router Dashboard</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+    }
+
+    header {
+      background: #1e293b;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+
+    .title {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    .value {
+      font-size: 22px;
+      margin-top: 10px;
+    }
+
+    #devicesList {
+      padding: 20px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>📡 Pro Router Dashboard</header>
+
+<div class="grid">
+  <div class="card">
+    <div class="title">Connection</div>
+    <div class="value" id="status"></div>
+  </div>
+
+  <div class="card">
+    <div class="title">Signal</div>
+    <div class="value" id="signal"></div>
+  </div>
+
+  <div class="card">
+    <div class="title">Devices</div>
+    <div class="value" id="devices"></div>
+  </div>
+
+  <div class="card">
+    <div class="title">Network</div>
+    <div class="value" id="network"></div>
+  </div>
+</div>
+
+<div class="card" style="margin:20px;">
+  <h3>Connected Devices</h3>
+  <ul id="devicesList"></ul>
+</div>
+
+<script>
+function decodeConnection(code) {
+  return code === "901" ? "Connected ✅" : "Disconnected ❌";
+}
+
+function signalBars(level) {
+  return "📶".repeat(parseInt(level));
+}
+
+async function loadStatus() {
+  const res = await fetch("http://localhost:3000/api/status");
+  const data = await res.json();
+
+  document.getElementById("status").innerText = decodeConnection(data.ConnectionStatus[0]);
+  document.getElementById("signal").innerText = signalBars(data.SignalIcon[0]);
+  document.getElementById("devices").innerText = data.CurrentWifiUser[0];
+  document.getElementById("network").innerText = "LTE (4G)";
+}
+
+async function loadDevices() {
+  const res = await fetch("http://localhost:3000/api/devices");
+  const data = await res.json();
+
+  const list = document.getElementById("devicesList");
+  list.innerHTML = "";
+
+  if (data.Hosts && data.Hosts.Host) {
+    data.Hosts.Host.forEach(device => {
+      const li = document.createElement("li");
+      li.textContent = device.HostName + " - " + device.MacAddress;
+      list.appendChild(li);
+    });
+  }
+}
+
+function refresh() {
+  loadStatus();
+  loadDevices();
+}
+
+setInterval(refresh, 5000);
+refresh();
+</script>
+
+</body>
+</html>
